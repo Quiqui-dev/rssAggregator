@@ -8,20 +8,22 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	ApiKey    string    `json:"api_key"`
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	DisplayName  string    `json:"display_name"`
+	EmailAddress string    `json:"emailAddress"`
+	ApiKey       string    `json:"api_key"`
 }
 
 func databseUserToUser(dbUser database.User) User {
 	return User{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreateAt,
-		UpdatedAt: dbUser.UpdatedAt,
-		Name:      dbUser.Name,
-		ApiKey:    dbUser.ApiKey,
+		ID:           dbUser.ID,
+		CreatedAt:    dbUser.CreateAt,
+		UpdatedAt:    dbUser.UpdatedAt,
+		DisplayName:  dbUser.DisplayName,
+		EmailAddress: dbUser.EmailAddress,
+		ApiKey:       dbUser.ApiKey,
 	}
 }
 

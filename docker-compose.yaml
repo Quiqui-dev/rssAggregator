@@ -1,0 +1,60 @@
+version: "1.0"
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    networks:
+      new:
+        aliases:
+          - database
+    environment:
+      - POSTGRES_DB=rssagg
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGUSER=postgres
+    ports:
+      - "5432"
+    healthcheck:
+      test: pg_isready -d ${POSTGRES_DB}
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    
+  migrate:
+    depends_on:
+    - db
+    restart: on-failure:10
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+      args:
+        - DB_URL=postgres://postgres:postgres@db:5432/rssagg?sslmode=disable
+    networks:
+      - new
+    command: ["goose", "postgres", "host=db user=postgres password=postgres dbname=rssagg sslmode=disable", "up"]
+    volumes:
+      - ./sql/schema:/migrations
+    links:
+      - db
+
+
+  rssagg:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_URL=postgres://postgres:postgres@database:5432/rssagg?sslmode=disable
+      - PORT=${PORT}
+    networks:
+      - new
+    links:
+      - db
+    depends_on:
+      - db
+
+    
+networks:
+  new:

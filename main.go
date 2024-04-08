@@ -10,7 +10,6 @@ import (
 	"github.com/Quiqui-dev/rssAggregator/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -20,7 +19,7 @@ type apiConfig struct {
 
 func main() {
 
-	godotenv.Load(".env")
+	//godotenv.Load(".env")
 
 	portStr := os.Getenv("PORT")
 
@@ -30,6 +29,7 @@ func main() {
 
 	dbUrl := os.Getenv("DB_URL")
 
+	log.Println("DB_URL:", dbUrl)
 	if dbUrl == "" {
 		log.Fatal("DB URL is not found in the environment")
 	}
@@ -67,6 +67,7 @@ func main() {
 	v1Router.Get("/err", handlerErr)
 	v1Router.Post("/users", apiCfg.handlerCreateUser)
 	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUser))
+	v1Router.Post("/login", apiCfg.handleLoginUser)
 
 	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 	v1Router.Get("/feeds", apiCfg.handlerGetFeeds)

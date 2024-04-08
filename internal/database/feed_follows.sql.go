@@ -92,3 +92,53 @@ func (q *Queries) GetFeedFollows(ctx context.Context, userID uuid.UUID) ([]FeedF
 	}
 	return items, nil
 }
+
+const getPopularFeeds = `-- name: GetPopularFeeds :many
+SELECT ff.feed_id, count(ff.feed_id) as num_follows, f.url, f.name
+FROM feed_follows ff
+JOIN feeds f ON ff.feed_id = f.id
+GROUP BY ff.feed_id, f.url, f.name
+ORDER BY num_follows DESC
+OFFSET $1
+LIMIT $2
+`
+
+type GetPopularFeedsParams struct {
+	Offset int32
+	Limit  int32
+}
+
+type GetPopularFeedsRow struct {
+	FeedID     uuid.UUID
+	NumFollows int64
+	Url        string
+	Name       string
+}
+
+func (q *Queries) GetPopularFeeds(ctx context.Context, arg GetPopularFeedsParams) ([]GetPopularFeedsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPopularFeeds, arg.Offset, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPopularFeedsRow
+	for rows.Next() {
+		var i GetPopularFeedsRow
+		if err := rows.Scan(
+			&i.FeedID,
+			&i.NumFollows,
+			&i.Url,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
